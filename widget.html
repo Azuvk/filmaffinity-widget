@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#111318;color:#f2f3f5;font-family:system-ui,-apple-system,sans-serif}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+h1{font-size:19px;margin:0;font-weight:700}
+#count{font-size:12px;color:#9ba3af;white-space:nowrap}
+ul{list-style:none;margin:0;padding:0}
+li{padding:9px 0;border-bottom:1px solid #292d35;font-size:14px;line-height:1.3}
+.year{color:#a3aab6;font-size:12px;margin-left:6px}
+#status{color:#9ba3af;font-size:12px;margin-top:12px}
+</style>
+</head>
+<body>
+<header><h1>Películas que quiero ver</h1><span id="count">Cargando…</span></header>
+<ul id="movies"></ul>
+<div id="status"></div>
+<script>
+const DATA_URL = "PEGA_AQUI_LA_URL_RAW_DE_movies.json";
+const LIMIT = 22;
+async function load(){
+  const list=document.getElementById("movies");
+  const count=document.getElementById("count");
+  const status=document.getElementById("status");
+  try{
+    if(DATA_URL.startsWith("PEGA_AQUI")) throw new Error("Configura DATA_URL en widget.html.");
+    const response=await fetch(DATA_URL,{cache:"no-store"});
+    if(!response.ok) throw new Error("No se pudo cargar la lista ("+response.status+").");
+    const data=await response.json();
+    const movies=Array.isArray(data.movies)?data.movies:[];
+    count.textContent=(data.count ?? movies.length)+" títulos";
+    movies.slice(0,LIMIT).forEach(movie=>{
+      const li=document.createElement("li");
+      li.textContent=movie.title || "Sin título";
+      if(movie.year){
+        const year=document.createElement("span");
+        year.className="year";
+        year.textContent="("+movie.year+")";
+        li.appendChild(year);
+      }
+      list.appendChild(li);
+    });
+    status.textContent=data.updated_at ? "Actualizada: "+new Date(data.updated_at).toLocaleDateString("es-ES") : "";
+  }catch(error){count.textContent="";status.textContent=error.message;}
+}
+load();
+</script>
+</body>
+</html>
